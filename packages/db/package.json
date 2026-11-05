@@ -1,0 +1,19 @@
+{
+  "name": "@builderdo/db",
+  "version": "0.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "dependencies": { "drizzle-orm": "0.45.4", "postgres": "3.4.9" },
+  "devDependencies": { "drizzle-kit": "0.31.11", "vitest": "3.2.7" }
+}

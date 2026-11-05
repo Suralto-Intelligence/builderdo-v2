@@ -1,0 +1,27 @@
+{
+  "name": "builderdo-v2",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": { "node": ">=22.12" },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "check": "turbo run lint typecheck test build",
+    "services:up": "docker compose up -d --wait",
+    "services:down": "docker compose down",
+    "services:reset": "docker compose down -v && docker compose up -d --wait",
+    "setup": "pnpm install && pnpm services:up && pnpm --filter \"./packages/*\" build"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@types/node": "22.20.5",
+    "eslint": "9.39.5",
+    "globals": "17.14.0",
+    "turbo": "2.11.10",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.1"
+  }
+}

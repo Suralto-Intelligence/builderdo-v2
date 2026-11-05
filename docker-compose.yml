@@ -1,0 +1,39 @@
+# Local stand-ins for the AWS services. Nothing here sends real email or SMS.
+name: builderdo
+services:
+  postgres:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_USER: builderdo
+      POSTGRES_PASSWORD: builderdo
+      POSTGRES_DB: builderdo
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U builderdo -d builderdo"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  queue:
+    image: softwaremill/elasticmq-native:1.6.11
+    ports: ["9324:9324", "9325:9325"]
+    volumes: ["./infra/local/elasticmq.conf:/opt/elasticmq.conf:ro"]
+
+  # S3-compatible stand-in for Cloudflare R2. (MinIO no longer publishes images on Docker Hub.)
+  storage:
+    image: adobe/s3mock:5.2.3
+    environment:
+      COM_ADOBE_TESTING_S3MOCK_STORE_INITIAL_BUCKETS: builderdo-uploads
+      COM_ADOBE_TESTING_S3MOCK_STORE_RETAIN_FILES_ON_EXIT: "true"
+      COM_ADOBE_TESTING_S3MOCK_STORE_ROOT: /data
+    ports: ["9000:9090"]
+    volumes: ["s3data:/data"]
+
+  mail:
+    image: axllent/mailpit:v1.27
+    ports: ["1025:1025", "8025:8025"]
+
+volumes:
+  pgdata:
+  s3data:
