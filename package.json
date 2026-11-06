@@ -2,7 +2,9 @@
   "name": "builderdo-v2",
   "private": true,
   "packageManager": "pnpm@10.28.0",
-  "engines": { "node": ">=22.12" },
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
@@ -13,7 +15,8 @@
     "services:up": "docker compose up -d --wait",
     "services:down": "docker compose down",
     "services:reset": "docker compose down -v && docker compose up -d --wait",
-    "setup": "pnpm install && pnpm services:up && pnpm --filter \"./packages/*\" build"
+    "setup": "pnpm install && pnpm services:up && pnpm --filter \"./packages/*\" build && pnpm db:migrate",
+    "db:migrate": "pnpm --filter @builderdo/db build && pnpm --filter @builderdo/db db:migrate"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",

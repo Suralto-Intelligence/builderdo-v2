@@ -1,12 +1,11 @@
-import type { DbHandle } from '@builderdo/db';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { randomUUID } from 'node:crypto';
-import { AppModule } from './app.module';
+import { AppModule, type AppOverrides } from './app.module';
 import type { ApiEnv } from './config/env';
 
 /** Builds the API app. Used by main.ts and by tests, so both run the same setup. */
-export async function createApp(env: ApiEnv, overrides: { dbHandle?: DbHandle } = {}): Promise<NestFastifyApplication> {
+export async function createApp(env: ApiEnv, overrides: AppOverrides = {}): Promise<NestFastifyApplication> {
   const adapter = new FastifyAdapter({
     logger: env.NODE_ENV === 'test' ? false : { level: env.LOG_LEVEL, redact: ['req.headers.authorization', 'req.headers.cookie'] },
     requestIdHeader: 'x-request-id',

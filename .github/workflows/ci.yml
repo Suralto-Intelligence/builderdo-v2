@@ -15,7 +15,31 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    # Same stand-ins as docker-compose.yml, so integration tests run against real services.
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_USER: builderdo
+          POSTGRES_PASSWORD: builderdo
+          POSTGRES_DB: builderdo
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U builderdo -d builderdo"
+          --health-interval 3s --health-timeout 3s --health-retries 30
+      queue:
+        image: softwaremill/elasticmq-native:1.6.11
+        ports: ["9324:9324"]
+      storage:
+        image: adobe/s3mock:5.2.3
+        env:
+          COM_ADOBE_TESTING_S3MOCK_STORE_INITIAL_BUCKETS: builderdo-uploads
+        ports: ["9000:9090"]
+    env:
+      TEST_DATABASE_ADMIN_URL: postgres://builderdo:builderdo@localhost:5432/postgres
+      QUEUE_ENDPOINT: http://localhost:9324
+      STORAGE_ENDPOINT: http://localhost:9000
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -28,7 +52,14 @@ jobs:
         run: pnpm lint
       - name: Type-check
         run: pnpm typecheck
-      - name: Unit tests
+      - name: Wait for file storage
+        run: timeout 60 bash -c 'until curl -sf http://localhost:9000/ > /dev/null; do sleep 2; done'
+      - name: Tests
         run: pnpm test
       - name: Build
         run: pnpm build
+      - name: Migrations are up to date with the schema
+        run: |
+          pnpm --filter @builderdo/db exec drizzle-kit generate --name=ci_check
+          git diff --exit-code --stat -- packages/db/migrations || (echo "Schema changed without a migration. Run: pnpm --filter @builderdo/db db:generate" && exit 1)
+          test -z "$(git status --porcelain packages/db/migrations)" || (echo "Schema changed without a migration" && git status --porcelain packages/db/migrations && exit 1)
