@@ -1,8 +1,10 @@
 import type { HealthResponse } from '@builderdo/shared';
 import { Controller, Get, HttpCode, Inject, Res } from '@nestjs/common';
 import type { FastifyReply } from 'fastify';
+import { Public } from '../auth/decorators';
 import { HealthService } from './health.service';
 
+@Public()
 @Controller('health')
 export class HealthController {
   constructor(@Inject(HealthService) private readonly health: HealthService) {}

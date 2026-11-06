@@ -8,7 +8,7 @@ Requirements: Node 22, pnpm 10 (`corepack enable`), Docker.
 
 ```bash
 cp .env.example .env
-pnpm setup          # install, start local services, build shared packages
+pnpm setup          # install, start local services, build shared packages, run migrations
 pnpm dev            # web on :3000, api on :4000, worker
 ```
 
@@ -34,11 +34,36 @@ infra/           Local service config now; Terraform for AWS from Phase 7
 
 Local services stand in for AWS: PostgreSQL + PostGIS for RDS, ElasticMQ for SQS, S3Mock for Cloudflare R2, Mailpit for Postmark. Nothing sends real email or SMS locally.
 
+## Signing in locally
+
+Local development uses test sign-in instead of Amazon Cognito. Get a token for any role:
+
+```bash
+curl -s localhost:4000/auth/dev/login -H 'content-type: application/json' \
+  -d '{"email":"ana@example.com","role":"homeowner"}'
+# then send it as: Authorization: Bearer <token>
+```
+
+Test sign-in is refused by the API's startup checks in staging and production.
+
+## How background work flows
+
+```
+API change ──(same transaction)──> outbox table ──relay──> queue ──> worker ──> domain_events
+                                                                      │
+                                         fails 5 times ──> dead-letter queue ──> admin re-run
+```
+
+Screens poll `GET /events?after=<last id>` to pick up changes, so nothing is missed after a reconnect.
+Jobs are delivered at least once, so every handler must be safe to run twice.
+
 ## Everyday commands
 
 ```bash
 pnpm check           # lint, type-check, test and build everything (what CI runs)
 pnpm services:reset  # wipe and restart local databases and storage
+pnpm db:migrate      # apply database migrations
+pnpm --filter @builderdo/db db:generate   # create a migration after changing packages/db/src/schema.ts
 ```
 
 ## Rules

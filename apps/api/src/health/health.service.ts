@@ -1,8 +1,8 @@
 import type { DbHandle } from '@builderdo/db';
 import { overallStatus, type HealthResponse } from '@builderdo/shared';
 import { Inject, Injectable } from '@nestjs/common';
+import { DB_HANDLE } from '../db/db.module';
 
-export const DB_HANDLE = Symbol('DB_HANDLE');
 
 const startedAt = Date.now();
 const version = process.env.APP_VERSION ?? 'dev';

@@ -25,10 +25,8 @@ services:
     image: adobe/s3mock:5.2.3
     environment:
       COM_ADOBE_TESTING_S3MOCK_STORE_INITIAL_BUCKETS: builderdo-uploads
-      COM_ADOBE_TESTING_S3MOCK_STORE_RETAIN_FILES_ON_EXIT: "true"
-      COM_ADOBE_TESTING_S3MOCK_STORE_ROOT: /data
+    # Files live inside the container: uploads reset when it is recreated, which is fine for local testing.
     ports: ["9000:9090"]
-    volumes: ["s3data:/data"]
 
   mail:
     image: axllent/mailpit:v1.27
@@ -36,4 +34,3 @@ services:
 
 volumes:
   pgdata:
-  s3data:
